@@ -51,6 +51,15 @@ else
     app.UseHsts();
 }
 
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    await RolesAsync(services);
+    await UsuariosAsync(services);
+}
+
+
+
 app.UseHttpsRedirection();
 
 
@@ -64,3 +73,62 @@ app.MapRazorComponents<App>()
 app.MapAdditionalIdentityEndpoints();
 
 app.Run();
+
+
+
+//Roles Pre Creados
+async Task RolesAsync(IServiceProvider serviceProvider)
+{
+    var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+    string[] roles = { "Admin", "Cliente" };
+
+    foreach (var role in roles)
+    {
+        if (!await roleManager.RoleExistsAsync(role))
+        {
+            await roleManager.CreateAsync(new IdentityRole(role));
+        }
+    }
+}
+
+
+async Task UsuariosAsync(IServiceProvider serviceProvider)
+{
+    var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+
+
+    // Usuario Admin
+    var adminEmail = "admin@gmail.com";
+    if (await userManager.FindByEmailAsync(adminEmail) == null)
+    {
+        var user = new ApplicationUser
+        {
+            UserName = adminEmail,
+            Email = adminEmail,
+            EmailConfirmed = true
+        };
+
+        if ((await userManager.CreateAsync(user, "Admin123@")).Succeeded)
+        {
+            await userManager.AddToRoleAsync(user, "Admin");
+        }
+    }
+    // Usuario cliente
+    var clienteEmail = "cliente@gmail.com";
+    if (await userManager.FindByEmailAsync(clienteEmail) == null)
+    {
+        var user = new ApplicationUser
+        {
+            UserName = clienteEmail,
+            Email = clienteEmail,
+            EmailConfirmed = true
+        };
+
+        if ((await userManager.CreateAsync(user, "Cliente123@")).Succeeded)
+        {
+            await userManager.AddToRoleAsync(user, "Cliente");
+        }
+    }
+
+}
