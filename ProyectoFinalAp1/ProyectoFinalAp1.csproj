@@ -19,4 +19,11 @@
     </PackageReference>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Components\Pages\AdminPages\Aviones\" />
+    <Folder Include="Components\Pages\AdminPages\Categoria\" />
+    <Folder Include="Components\Pages\AdminPages\Ventas\" />
+    <Folder Include="Components\Pages\ClientePages\" />
+  </ItemGroup>
+
 </Project>
