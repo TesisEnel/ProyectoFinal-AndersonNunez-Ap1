@@ -1,0 +1,126 @@
+﻿@page "/Aviones/AvionesIndex"
+
+
+@using ProyectoFinalAp1.Models
+@using ProyectoFinalAp1.Services
+@inject AvionService avionService
+@inject NavigationManager navigationManager
+
+
+<div class="container">
+    <div class="card shadow-lg">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0 w-100 text-center">Consulta de Aviones</h5>
+            <a href="/Aviones/AvionesCreate" class="btn btn-success bi bi-plus-circle"> Crear</a>
+        </div>
+
+        <div class="card-body">
+            <!-- Filtro -->
+            <div class="row mb-3">
+                <div class="col-3">
+                    <label class="form-label"><strong>Filtrar por</strong></label>
+                    <select class="form-select" @bind="Filtro">
+                        <option value="" disabled>Elija una opción</option>
+                        <option value="IdAvion">ID Avión</option>
+                        <option value="Modelo">Modelo</option>
+                        <option value="Fabricante">Fabricante</option>
+                        <option value="Categoria">Categoría</option>
+                    </select>
+                </div>
+                <div class="col-5">
+                    <label class="form-label"><strong>Búsqueda</strong></label>
+                    <input type="text" class="form-control" placeholder="Buscar..." @bind="ValorFiltro" />
+                </div>
+                <div class="col-2 d-flex align-items-end">
+                    <button class="btn btn-primary" @onclick="Buscar">
+                        <i class="bi bi-search"></i> Buscar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tabla -->
+            <table class="table table-hover mt-3">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Modelo</th>
+                        <th>Fabricante</th>
+                        <th>Fecha de Fabricación</th>
+                        <th>Disponibles</th>
+                        <th class="text-center">Editar</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (ListaAviones != null && ListaAviones.Count > 0)
+                    {
+                        @foreach (var avion in ListaAviones)
+                        {
+                            <tr>
+                                <td>@avion.IdAvion</td>
+                                <td>@avion.Modelo</td>
+                                <td>@avion.Fabricante</td>
+                                <td>@avion.FechaFabricacion.ToShortDateString()</td>
+                                <td>@avion.CantidadDisponible</td>
+                                <td class="text-center">
+                                    <a href="/Aviones/AvionesEdit/@avion.IdAvion" class="btn btn-outline-primary bi bi-pencil-square"></a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="6" class="text-center">No se encontraron aviones.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<Aviones> ListaAviones = new();
+    private string Filtro { get; set; } = "";
+    private string ValorFiltro { get; set; } = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarDatos();
+    }
+
+    private async Task CargarDatos()
+    {
+        ListaAviones = await avionService.Listar(a => true);
+    }
+
+    private async Task Buscar()
+    {
+        if (string.IsNullOrWhiteSpace(Filtro) || string.IsNullOrWhiteSpace(ValorFiltro))
+        {
+            await CargarDatos();
+            return;
+        }
+
+        ValorFiltro = ValorFiltro.ToLower();
+
+        if (Filtro == "IdAvion" && int.TryParse(ValorFiltro, out int id))
+        {
+            ListaAviones = await avionService.Listar(a => a.IdAvion == id);
+        }
+        else if (Filtro == "Modelo")
+        {
+            ListaAviones = await avionService.Listar(a => a.Modelo.ToLower().Contains(ValorFiltro));
+        }
+        else if (Filtro == "Fabricante")
+        {
+            ListaAviones = await avionService.Listar(a => a.Fabricante.ToLower().Contains(ValorFiltro));
+        }
+        else if (Filtro == "Categoria")
+        {
+            ListaAviones = await avionService.Listar(a => a.Categoria != null && a.Categoria.Nombre.ToLower().Contains(ValorFiltro));
+        }
+        else
+        {
+            await CargarDatos();
+        }
+    }
+}
