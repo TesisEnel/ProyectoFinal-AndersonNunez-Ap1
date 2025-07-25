@@ -1,0 +1,104 @@
+﻿@page "/Categoria/CategoriaEdit/{Id:int}"
+
+
+@inject CategoriaService categoriaService
+@inject NavigationManager navigationManager
+@using ProyectoFinalAp1.Models
+@using ProyectoFinalAp1.Services
+
+
+@if (categoria == null)
+{
+    <p><em>Cargando...</em></p>
+}
+else
+{
+    <EditForm Model="categoria" OnValidSubmit="Guardar">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="container mt-3">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white text-center">
+                    <h5>Editar Categoría</h5>
+                </div>
+
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label"><strong>ID Categoría</strong></label>
+                        <InputNumber class="form-control" @bind-Value="categoria.IdCategoria" readonly />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Nombre</strong></label>
+                        <InputText class="form-control" @bind-Value="categoria.Nombre" />
+                        <ValidationMessage For="@(() => categoria.Nombre)" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Descripción</strong></label>
+                        <InputText class="form-control" @bind-Value="categoria.Descripcion" />
+                        <ValidationMessage For="@(() => categoria.Descripcion)" />
+                    </div>
+                </div>
+
+                <div class="card-footer text-center">
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-secondary" @onclick="Volver">
+                            <i class="bi bi-arrow-left"></i> Volver
+                        </button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle"></i> Actualizar
+                        </button>
+                        <button type="button" class="btn btn-outline-primary" @onclick="Nuevo">
+                            <i class="bi bi-eraser"></i> Limpiar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </EditForm>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }  
+
+    private Categoria? categoria;
+
+    protected override async Task OnInitializedAsync()
+    {
+        categoria = await categoriaService.Buscar(Id);
+        if (categoria == null)
+        {
+          
+            categoria = new Categoria();
+        }
+    }
+
+    private async Task Nuevo()
+    {
+        if (Id != 0)
+        {
+            categoria = await categoriaService.Buscar(Id) ?? new Categoria();
+        }
+        else
+        {
+            categoria = new Categoria();
+        }
+    }
+
+    private async Task Guardar()
+    {
+        if (categoria != null)
+        {
+            await categoriaService.Guardar(categoria);
+            Volver();
+        }
+    }
+
+    private void Volver()
+    {
+        navigationManager.NavigateTo("/Categoria/CategoriaIndex");
+    }
+}
