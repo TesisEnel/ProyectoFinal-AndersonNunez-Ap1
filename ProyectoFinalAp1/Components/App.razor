@@ -1,4 +1,6 @@
-﻿<!DOCTYPE html>
+﻿@inject NavigationManager NavigationManager
+
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -8,14 +10,37 @@
     <link rel="stylesheet" href="@Assets["lib/bootstrap/dist/css/bootstrap.min.css"]" />
     <link rel="stylesheet" href="@Assets["app.css"]" />
     <link rel="stylesheet" href="@Assets["ProyectoFinalAp1.styles.css"]" />
-    <ImportMap />
     <link rel="icon" type="image/png" href="favicon.png" />
-    <HeadOutlet />
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    @if (IsAuthPage)
+    {
+        <HeadOutlet />
+    }
+    else
+    {
+        <HeadOutlet @rendermode="InteractiveServer" />
+    }
 </head>
 
 <body>
-    <Routes />
+
+    @if (IsAuthPage)
+    {
+        <Routes />
+    }
+    else
+    {
+        <Routes @rendermode="InteractiveServer" />
+    }
+
     <script src="_framework/blazor.web.js"></script>
 </body>
 
 </html>
+
+@code {
+    private bool IsAuthPage =>
+        NavigationManager.Uri.Contains("/Account/", StringComparison.OrdinalIgnoreCase) ||
+        NavigationManager.Uri.Contains("/Identity/", StringComparison.OrdinalIgnoreCase);
+}
