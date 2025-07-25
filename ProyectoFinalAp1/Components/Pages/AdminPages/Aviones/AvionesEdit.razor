@@ -1,0 +1,233 @@
+﻿@page "/Aviones/AvionesEdit/{id:int}"
+
+
+@inject NavigationManager navigationManager
+@inject CategoriaService categoriaService
+@inject AvionService avionesService
+
+@using ProyectoFinalAp1.Models
+@using ProyectoFinalAp1.Services
+
+
+@if (avion != null)
+{
+    <EditForm Model="avion" OnValidSubmit="Guardar">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="container mt-3">
+            <div class="card shadow">
+                <div class="card-header bg-warning text-dark text-center">
+                    <h5>Editar Avión</h5>
+                </div>
+
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Nombre</strong></label>
+                        <InputText class="form-control" @bind-Value="avion.Nombre" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Modelo</strong></label>
+                        <InputText class="form-control" @bind-Value="avion.Modelo" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Foto</strong></label>
+
+                        <InputFile OnChange="OnInputFileChange" accept="image/*" class="form-control" />
+
+                        @if (!string.IsNullOrEmpty(avion.ImagenUrl))
+                        {
+                            <div class="mt-2">
+                                <img src="@avion.ImagenUrl" alt="Imagen subida" style="max-height: 200px;" class="img-thumbnail" />
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(ErrorMessage))
+                        {
+                            <div class="text-danger mt-2">@ErrorMessage</div>
+                        }
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Fabricante</strong></label>
+                        <InputText class="form-control" @bind-Value="avion.Fabricante" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Categoría</strong></label>
+                        <InputSelect class="form-control" @bind-Value="avion.IdCategoria">
+                            <option value="">Seleccione una categoría...</option>
+                            @foreach (var cat in categorias)
+                            {
+                                <option value="@cat.IdCategoria">@cat.Nombre</option>
+                            }
+                        </InputSelect>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Capacidad de Pasajeros</strong></label>
+                        <InputNumber class="form-control" @bind-Value="avion.CapacidadPasajeros" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Velocidad Máxima</strong></label>
+                        <InputNumber class="form-control" @bind-Value="avion.VelocidadMaxima" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Precio</strong></label>
+                        <InputNumber class="form-control" @bind-Value="avion.Precio" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Descripción</strong></label>
+                        <InputText class="form-control" @bind-Value="avion.Descripcion" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Fecha de Fabricación</strong></label>
+                        <InputDate class="form-control" @bind-Value="avion.FechaFabricacion" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Cantidad Disponible</strong></label>
+                        <InputNumber class="form-control" @bind-Value="avion.CantidadDisponible" />
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <InputCheckbox class="form-check-input" @bind-Value="avion.Disponible" />
+                        <label class="form-check-label"><strong>Disponible</strong></label>
+                    </div>
+                </div>
+
+                <div class="card-footer text-center">
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-secondary" @onclick="Volver">
+                            <i class="bi bi-arrow-left"></i> Volver
+                        </button>
+                        <button type="submit" class="btn btn-warning">
+                            <i class="bi bi-check-circle"></i> Actualizar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </EditForm>
+}
+else
+{
+    <p>Cargando datos del avión...</p>
+}
+
+@code {
+    [Parameter] public int id { get; set; }
+
+    private Aviones? avion;
+    private List<Categoria> categorias = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        categorias = await categoriaService.Listar();
+
+        if (categorias == null || categorias.Count == 0)
+        {
+
+            navigationManager.NavigateTo("/Categoria/CategoriaIndex");
+        }
+
+        avion = await avionesService.Buscar(id);
+    }
+
+    private async Task Guardar()
+    {
+        var actualizado = await avionesService.Guardar(avion!);
+
+        if (actualizado)
+        {
+            Volver();
+        }
+    }
+
+    private void Volver()
+    {
+        navigationManager.NavigateTo("/Aviones/AvionesIndex");
+    }
+
+    private const long MaxFileSize = 2 * 1024 * 1024;
+    private string? ErrorMessage;
+
+    private async Task OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            ErrorMessage = null;
+            var file = e.File;
+
+
+            if (file == null || file.Size == 0)
+            {
+                ErrorMessage = "Por favor seleccione un archivo válido.";
+                return;
+            }
+
+            if (file.Size > MaxFileSize)
+            {
+                ErrorMessage = $"El archivo es demasiado grande (máximo {MaxFileSize / (1024 * 1024)} MB).";
+                return;
+            }
+
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+            var extension = Path.GetExtension(file.Name).ToLowerInvariant();
+            if (string.IsNullOrEmpty(extension) || !allowedExtensions.Contains(extension))
+            {
+                ErrorMessage = "Formato no soportado. Use JPG, PNG, GIF o WEBP.";
+                return;
+            }
+
+
+            var fileName = $"{Guid.NewGuid()}{extension}";
+            var folderPath = Path.Combine("wwwroot", "uploads", "aviones");
+            var fullFolderPath = Path.Combine(Directory.GetCurrentDirectory(), folderPath);
+
+
+            try
+            {
+                Directory.CreateDirectory(fullFolderPath);
+            }
+            catch (Exception dirEx)
+            {
+                ErrorMessage = $"No se pudo crear el directorio: {dirEx.Message}";
+
+                return;
+            }
+
+            var fullPath = Path.Combine(fullFolderPath, fileName);
+
+
+            try
+            {
+                await using var fileStream = new FileStream(fullPath, FileMode.Create);
+                await using var stream = file.OpenReadStream(MaxFileSize);
+                await stream.CopyToAsync(fileStream);
+            }
+            catch (IOException ioEx)
+            {
+                ErrorMessage = $"Error al guardar el archivo: {ioEx.Message}";
+
+                return;
+            }
+
+            avion.ImagenUrl = $"/uploads/aviones/{fileName}";
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Error inesperado: {ex.Message}";
+
+        }
+        finally
+        {
+            StateHasChanged();
+        }
+    }
+
+}
