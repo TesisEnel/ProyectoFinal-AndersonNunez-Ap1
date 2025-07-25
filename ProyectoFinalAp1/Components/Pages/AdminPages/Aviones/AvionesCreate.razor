@@ -1,5 +1,208 @@
-﻿<h3>AvionesCreate</h3>
+﻿@page "/Aviones/AvionesCreate"
+
+@inject NavigationManager navigationManager
+@inject CategoriaService categoriaService
+@inject AvionService avionesService
+
+
+@using ProyectoFinalAp1.Models
+@using ProyectoFinalAp1.Services
+
+
+<EditForm Model="avion" OnValidSubmit="Guardar">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="container mt-3">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white text-center">
+                <h5>Nuevo Avión</h5>
+            </div>
+
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label"><strong>Nombre</strong></label>
+                    <InputText class="form-control" @bind-Value="avion.Nombre" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label"><strong>Modelo</strong></label>
+                    <InputText class="form-control" @bind-Value="avion.Modelo" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label"><strong>Foto</strong></label>
+
+                    <InputFile OnChange="OnInputFileChange" accept="image/*" class="form-control" />
+
+                    @if (!string.IsNullOrEmpty(avion.ImagenUrl))
+                    {
+                        <div class="mt-2">
+                            <img src="@avion.ImagenUrl" alt="Imagen subida" style="max-height: 200px;" class="img-thumbnail" />
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(ErrorMessage))
+                    {
+                        <div class="text-danger mt-2">@ErrorMessage</div>
+                    }
+                </div>
+                <div class="mb-3">
+                    <label class="form-label"><strong>Fabricante</strong></label>
+                    <InputText class="form-control" @bind-Value="avion.Fabricante" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label"><strong>Categoría</strong></label>
+                    <InputSelect class="form-control" @bind-Value="avion.IdCategoria">
+                        <option value="">Seleccione una categoría...</option>
+                        @foreach (var cat in categorias)
+                        {
+                            <option value="@cat.IdCategoria">@cat.Nombre</option>
+                        }
+                    </InputSelect>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label"><strong>Capacidad de Pasajeros</strong></label>
+                    <InputNumber class="form-control" @bind-Value="avion.CapacidadPasajeros" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label"><strong>Velocidad Máxima</strong></label>
+                    <InputNumber class="form-control" @bind-Value="avion.VelocidadMaxima" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label"><strong>Precio</strong></label>
+                    <InputNumber class="form-control" @bind-Value="avion.Precio" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label"><strong>Descripción</strong></label>
+                    <InputText class="form-control" @bind-Value="avion.Descripcion" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label"><strong>Fecha de Fabricación</strong></label>
+                    <InputDate class="form-control" @bind-Value="avion.FechaFabricacion" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label"><strong>Cantidad Disponible</strong></label>
+                    <InputNumber class="form-control" @bind-Value="avion.CantidadDisponible" />
+                </div>
+
+                <div class="form-check mb-3">
+                    <InputCheckbox class="form-check-input" @bind-Value="avion.Disponible" />
+                    <label class="form-check-label"><strong>Disponible</strong></label>
+                </div>
+            </div>
+
+            <div class="card-footer text-center">
+                <div class="btn-group">
+                    <button type="button" class="btn btn-secondary" @onclick="Volver">
+                        <i class="bi bi-arrow-left"></i> Volver
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-circle"></i> Guardar
+                    </button>
+                    <button type="button" class="btn btn-outline-primary" @onclick="Nuevo">
+                        <i class="bi bi-eraser"></i> Limpiar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</EditForm>
 
 @code {
+    private Aviones avion = new Aviones();
+    private List<Categoria> categorias = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        categorias = await categoriaService.Listar();
+
+        if (categorias == null || categorias.Count == 0)
+        {
+            await Task.Yield();
+            navigationManager.NavigateTo("/Categoria/CategoriaIndex");
+        }
+    }
+
+    private async Task Guardar()
+    {
+        var guardado = await avionesService.Guardar(avion);
+
+        if (guardado)
+        {
+            await Nuevo();
+            Volver();
+        }
+    }
+
+    private async Task Nuevo()
+    {
+        avion = new Aviones();
+    }
+
+    private void Volver()
+    {
+        navigationManager.NavigateTo("/Aviones/AvionesIndex");
+    }
+
+    //subir imagen
+    private const long MaxFileSize = 2 * 1024 * 1024;
+    private string? ErrorMessage;
+
+    private async Task OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            var file = e.File;
+
+
+            if (file.Size > MaxFileSize)
+            {
+                ErrorMessage = "El archivo es demasiado grande (máximo 2 MB).";
+                return;
+            }
+
+
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+            var extension = Path.GetExtension(file.Name).ToLowerInvariant();
+            if (!allowedExtensions.Contains(extension))
+            {
+                ErrorMessage = "Formato no soportado. Use JPG, PNG, GIF o WEBP.";
+                return;
+            }
+
+
+            var fileName = $"{Guid.NewGuid()}{extension}";
+            var folderPath = Path.Combine("wwwroot", "uploads", "aviones");
+            var fullFolderPath = Path.Combine(Directory.GetCurrentDirectory(), folderPath);
+
+            if (!Directory.Exists(fullFolderPath))
+            {
+                Directory.CreateDirectory(fullFolderPath);
+            }
+
+            var fullPath = Path.Combine(fullFolderPath, fileName);
+
+
+            await using var fileStream = new FileStream(fullPath, FileMode.Create);
+            await file.OpenReadStream(MaxFileSize).CopyToAsync(fileStream);
+
+
+            avion.ImagenUrl = $"/uploads/aviones/{fileName}";
+
+            ErrorMessage = null;
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Error al subir la imagen: {ex.Message}";
+        }
+    }
 
 }
