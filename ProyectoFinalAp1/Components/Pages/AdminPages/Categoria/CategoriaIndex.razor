@@ -1,0 +1,130 @@
+﻿@page "/Categoria/CategoriaIndex"
+
+
+@inject CategoriaService categoriaService
+@inject NavigationManager navigationManager
+
+@using ProyectoFinalAp1.Models
+@using ProyectoFinalAp1.Services
+
+
+<div class="container">
+    <div class="card shadow-lg">
+        <div class="card-header d-flex justify-content-between align-items-center position-relative">
+            <h5 class="card-title mb-0 text-center w-100">Consulta de Categorías</h5>
+            <NavLink href="/Categoria/CategoriaCreate" class="btn btn-success bi bi-plus-circle"> Crear</NavLink>
+        </div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-3">
+                    <label class="form-label"><strong>Filtrar por</strong></label>
+                    <select class="form-select" @bind="Filtro">
+                        <option value="" disabled>Elija una opción</option>
+                        <option value="IdCategoria">ID Categoría</option>
+                        <option value="Nombre">Nombre</option>
+                    </select>
+                </div>
+                <div class="col-5">
+                    <label class="form-label"><strong>Búsqueda</strong></label>
+                    <input type="text" class="form-control" placeholder="Buscar" @bind="ValorFiltro" />
+                </div>
+                <div class="col-2 d-flex align-items-end">
+                    <button class="btn btn-primary" @onclick="Buscar">
+                        <i class="bi bi-search"></i> Buscar
+                    </button>
+                </div>
+            </div>
+
+            <table class="table table-hover mt-3">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID Categoría</th>
+                        <th>Nombre</th>
+                        <th>Descripción</th>
+                        <th class="text-center">Editar</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (ListaCategorias != null && ListaCategorias.Count > 0)
+                    {
+                        @foreach (var categoria in ListaCategorias)
+                        {
+                            <tr>
+                                <td>@categoria.IdCategoria</td>
+                                <td>@categoria.Nombre</td>
+                                <td>@categoria.Descripcion</td>
+                                <td class="text-center">
+                                    <a href="/Categoria/CategoriaEdit/@categoria.IdCategoria" class="btn btn-outline-primary bi bi-pencil-square"></a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="4" class="text-center">No se encontraron categorías.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card-footer d-flex justify-content-between">
+            <label>Cantidad: @(ListaCategorias?.Count ?? 0)</label>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<Categoria> ListaCategorias = new();
+    private string Filtro { get; set; } = "";
+    private string ValorFiltro { get; set; } = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarDatos();
+    }
+
+    private async Task CargarDatos()
+    {
+        try
+        {
+
+            ListaCategorias = await categoriaService.Listar(c => true);
+        }
+        catch (Exception ex)
+        {
+
+            ListaCategorias = new List<Categoria>();
+        }
+    }
+
+    private async Task Buscar()
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(Filtro) || string.IsNullOrWhiteSpace(ValorFiltro))
+            {
+                await CargarDatos();
+                return;
+            }
+
+            if (Filtro == "IdCategoria" && int.TryParse(ValorFiltro, out int id))
+            {
+                ListaCategorias = await categoriaService.Listar(c => c.IdCategoria == id);
+            }
+            else if (Filtro == "Nombre")
+            {
+                ListaCategorias = await categoriaService.Listar(c => c.Nombre.ToLower().Contains(ValorFiltro.ToLower()));
+            }
+            else
+            {
+                await CargarDatos();
+            }
+        }
+        catch (Exception ex)
+        {
+
+        }
+    }
+}
