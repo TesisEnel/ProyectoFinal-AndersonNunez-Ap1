@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ProyectoFinalAp1.Components;
@@ -13,6 +14,9 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 
+
+builder.Services.AddRazorPages();
+builder.Services.AddServerSideBlazor();
 
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityUserAccessor>();
@@ -47,6 +51,12 @@ builder.Services.AddScoped<CategoriaService>();
 builder.Services.AddScoped<CarritoCompraService>();
 builder.Services.AddScoped<AvionService>();
 
+
+
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 1024 * 1024 * 2;
+});
 
 var app = builder.Build();
 
