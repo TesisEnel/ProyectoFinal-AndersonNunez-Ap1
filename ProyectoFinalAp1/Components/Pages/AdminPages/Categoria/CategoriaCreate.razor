@@ -1,0 +1,94 @@
+﻿@page "/Categoria/CategoriaCreate"
+
+@inject CategoriaService categoriaService
+@inject NavigationManager navigationManager
+@using Microsoft.AspNetCore.Mvc
+@using ProyectoFinalAp1.Models
+@using ProyectoFinalAp1.Services
+@using System.Diagnostics
+
+
+
+<EditForm Model="@categoria" OnValidSubmit="@Guardar">
+
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+
+    <div class="container mt-3">
+        <div class="card shadow">
+            <div class="<App />card-header bg-primary text-white text-center">
+                <h5>Nueva Categoría</h5>
+            </div>
+
+            <div class="card-body">
+
+                <div class="mb-3">
+                    <label class="form-label"><strong>Nombre</strong></label>
+                    <InputText class="form-control" @bind-Value="categoria.Nombre" />
+                    <ValidationMessage For="@(() => categoria.Nombre)" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label"><strong>Descripción</strong></label>
+                    <InputText class="form-control" @bind-Value="categoria.Descripcion" />
+
+                </div>
+            </div>
+
+            <div class="card-footer text-center">
+                <div class="btn-group">
+                    <button type="button" class="btn btn-secondary" @onclick="Volver">
+                        <i class="bi bi-arrow-left"></i> Volver
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-circle"></i> Guardar
+                    </button>
+                    <button type="button" class="btn btn-outline-primary" @onclick="Nuevo">
+                        <i class="bi bi-eraser"></i> Limpiar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    @attribute [IgnoreAntiforgeryToken]
+
+    private Categoria categoria = new Categoria();
+    private bool existe = false;
+
+    private async Task Nuevo()
+    {
+        categoria = new Categoria();
+        existe = false;
+    }
+
+    private async Task Guardar()
+    {
+        Debug.WriteLine($"Nombre: {categoria.Nombre}");
+        Debug.WriteLine($"Descripción: {categoria.Descripcion}");
+        if (await categoriaService.Existe(categoria.IdCategoria))
+        {
+
+            return;
+        }
+
+        var guardado = await categoriaService.Guardar(categoria);
+        if (guardado)
+        {
+            await Nuevo();
+            Volver();
+        }
+
+    }
+
+
+    private void Volver()
+    {
+        navigationManager.NavigateTo("/Categoria/CategoriaIndex");
+    }
+
+
+}
