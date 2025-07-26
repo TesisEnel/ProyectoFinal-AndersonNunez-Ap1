@@ -21,7 +21,7 @@
                 <button class="btn btn-primary rounded-end" @onclick="FiltrarAviones"><i class="bi bi-search"></i></button>
             </div>
 
-            <button class="btn btn-success position-relative rounded-pill px-5 py-2 shadow-sm" style="font-weight: 600; font-size: 1.1rem;">
+            <button class="btn btn-success position-relative rounded-pill px-5 py-2 shadow-sm" @onclick="IrAlCarrito" style="font-weight: 600; font-size: 1.1rem;">
                 <i class="bi bi-cart3 me-2"></i> Mi carrito
                 <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-light">
                     @cantidadCarrito
@@ -145,5 +145,12 @@
         StateHasChanged();
       
     }
+
+
+    private void IrAlCarrito()
+    {
+        NavigationManager.NavigateTo("/CarritoDeCompra");
+    }
+
 
 }
