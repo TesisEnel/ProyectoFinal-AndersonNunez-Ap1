@@ -1,7 +1,149 @@
 ﻿@page "/"
+@using ProyectoFinalAp1.Models
+@using ProyectoFinalAp1.Services
 
-<PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+@inject AvionService avionService
+@inject NavigationManager NavigationManager
 
-Welcome to your new app.
+<PageTitle>Aviones</PageTitle>
+<div class="container mt-4">
+
+    <div class="mb-5 p-4 rounded shadow-sm bg-light">
+        <h2 class="text-black fw-bold mb-4" style="font-size: 2.5rem; letter-spacing: 1px;">
+            Aviones disponibles
+        </h2>
+
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+
+            <div class="input-group" style="max-width: 350px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-radius: 0.5rem;">
+                <input type="text" class="form-control rounded-start border-0" placeholder="Buscar modelo o fabricante..." @bind="busqueda" @bind:event="oninput" />
+                <button class="btn btn-primary rounded-end" @onclick="FiltrarAviones"><i class="bi bi-search"></i></button>
+            </div>
+
+            <button class="btn btn-success position-relative rounded-pill px-5 py-2 shadow-sm" style="font-weight: 600; font-size: 1.1rem;">
+                <i class="bi bi-cart3 me-2"></i> Mi carrito
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-light">
+                    @cantidadCarrito
+                </span>
+            </button>
+        </div>
+    </div>
+
+
+    <!-- Lista de aviones -->
+    <div class="row">
+        @if (avionesFiltrados is not null && avionesFiltrados.Any())
+        {
+            @foreach (var avion in avionesFiltrados)
+            {
+                <div class="col-md-4 mb-4">
+                    <div class="card card-rounded shadow-sm h-100 border-0">
+                        <img src="@avion.ImagenUrl" class="card-img-top card-img-rounded" alt="@avion.Modelo" style="height: 200px; object-fit: cover;" />
+                        <div class="card-body d-flex flex-column justify-content-between">
+                            <div>
+                                <h5 class="card-title">@avion.Nombre</h5>
+                                <h6 class="card-subtitle text-muted">@avion.Modelo</h6>
+                                <p class="text-muted m-0"><i class="bi bi-building me-1"></i>@avion.Fabricante</p>
+                                <p class="text-muted m-0"><i class="bi bi-people me-1"></i>@avion.CapacidadPasajeros pasajeros</p>
+                                <p class="text-muted m-0"><i class="bi bi-speedometer2 me-1"></i>@avion.VelocidadMaxima km/h</p>
+                                <p class="fw-semibold text-dark fs-5 mt-2">RD$ @avion.Precio.ToString("N2")</p>
+
+                                <p class="text-muted mt-1 small">
+                                    @((avion.Descripcion.Length > 100 ? avion.Descripcion[..100] + "..." : avion.Descripcion))
+                                </p>
+                                <p class="fw-semibold text-dark fs-6 mt-2">Disponibles: @avion.CantidadDisponible</p>
+                            </div>
+                            <button class="btn btn-primary mt-auto rounded-pill" @onclick="() => AgregarAlCarrito(avion)">
+                                <i class="bi bi-cart-plus me-1"></i> Comprar Ahora
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12 text-center">
+                <p class="text-muted">No hay aviones disponibles.</p>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .card-rounded {
+        border-radius: 15px;
+    }
+
+    .card-img-rounded {
+        border-top-left-radius: 15px;
+        border-top-right-radius: 15px;
+    }
+
+    .shadow-sm {
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .btn-primary.rounded-pill,
+    .btn-outline-success.rounded-pill {
+        border-radius: 50rem !important;
+    }
+
+</style>
+
+@code {
+    private List<Aviones> aviones = new();
+    private List<Aviones> avionesFiltrados = new();
+    private string busqueda = string.Empty;
+    private int cantidadCarrito = 0;
+    private List<CarritoDetalle> carritoDetalles = new();
+    private bool primerRender = true;
+    private AuthenticationState authState;
+
+    protected override async Task OnInitializedAsync()
+    {
+        aviones = await avionService.Listar(a => true);
+        avionesFiltrados = aviones;
+
+    }
+
+  
+    private void FiltrarAviones()
+    {
+        if (string.IsNullOrWhiteSpace(busqueda))
+        {
+            avionesFiltrados = aviones;
+        }
+        else
+        {
+            var filtro = busqueda.ToLower();
+            avionesFiltrados = aviones
+                .Where(a => a.Modelo.ToLower().Contains(filtro) || a.Fabricante.ToLower().Contains(filtro))
+                .ToList();
+        }
+    }
+
+    private async Task AgregarAlCarrito(Aviones avion)
+    {
+        var detalleExistente = carritoDetalles.FirstOrDefault(d => d.IdAvion == avion.IdAvion);
+        if (detalleExistente != null)
+        {
+            detalleExistente.Cantidad++;
+        }
+        else
+        {
+            carritoDetalles.Add(new CarritoDetalle
+            {
+                IdAvion = avion.IdAvion,
+                Cantidad = 1,
+                Precio = avion.Precio
+            });
+        }
+        cantidadCarrito = carritoDetalles.Sum(d => d.Cantidad);
+     
+        StateHasChanged();
+      
+    }
+
+}
