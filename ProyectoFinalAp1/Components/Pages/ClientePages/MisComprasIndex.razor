@@ -1,30 +1,28 @@
-﻿@page "/Ventas/VentasIndex"
-
+﻿@page "/MisComprasIndex"
 
 @inject CarritoCompraService carritoCompraService
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
-<h3 class="text-center mb-4">Listado de Ventas</h3>
+<h3 class="text-center mb-4">Mis Compras</h3>
 
-@if (ventas is null)
+@if (compras is null)
 {
-    <p><em>Cargando ventas...</em></p>
+    <p><em>Cargando compras...</em></p>
 }
-else if (ventas.Count == 0)
+else if (compras.Count == 0)
 {
-    <p><strong>No hay ventas registradas.</strong></p>
+    <p><strong>No tienes compras registradas.</strong></p>
 }
 else
 {
-    @foreach (var venta in ventas)
+    @foreach (var venta in compras)
     {
         <div class="card mb-4">
             <div class="card-header d-flex justify-content-between">
-                <strong>Venta #@venta.Id</strong>
+                <strong>Compra #@venta.Id</strong>
                 <span>@venta.FechaCreacion.ToString("dd/MM/yyyy hh:mm tt")</span>
             </div>
             <div class="card-body">
-                <p><strong>Usuario:</strong> @venta.IdUsuario</p>
-
                 <table class="table table-bordered">
                     <thead>
                         <tr>
@@ -48,17 +46,23 @@ else
                         }
                     </tbody>
                 </table>
-                <p class="text-end"><strong>Total de la Venta:</strong> @venta.Detalles.Sum(d => d.Precio * d.Cantidad).ToString("C")</p>
+                <p class="text-end"><strong>Total:</strong> @venta.Detalles.Sum(d => d.Precio * d.Cantidad).ToString("C")</p>
             </div>
         </div>
     }
 }
 
 @code {
-    private List<CarritoCompra> ventas;
+    private List<CarritoCompra> compras;
 
     protected override async Task OnInitializedAsync()
     {
-        ventas = await carritoCompraService.ListarConDetalle();
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var userId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+        if (!string.IsNullOrEmpty(userId))
+        {
+            compras = await carritoCompraService.ListarConDetalle(userId);
+        }
     }
 }
