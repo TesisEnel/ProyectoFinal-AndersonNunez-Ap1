@@ -19,8 +19,4 @@
     </PackageReference>
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Components\Pages\AdminPages\Ventas\" />
-  </ItemGroup>
-
 </Project>
