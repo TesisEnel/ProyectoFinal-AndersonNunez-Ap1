@@ -20,10 +20,6 @@ public class Aviones
     [StringLength(100, ErrorMessage = "El modelo no puede tener más de 100 caracteres.")]
     public string Modelo { get; set; }
 
-    [Required(ErrorMessage = "El fabricante es obligatorio.")]
-    [StringLength(100, ErrorMessage = "El fabricante no puede tener más de 100 caracteres.")]
-    public string Fabricante { get; set; }
-
     [Range(1, int.MaxValue, ErrorMessage = "La capacidad de pasajeros debe ser al menos 1.")]
     public int CapacidadPasajeros { get; set; }
 
