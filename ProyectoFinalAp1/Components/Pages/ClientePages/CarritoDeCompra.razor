@@ -1,9 +1,204 @@
 ﻿@page "/CarritoDeCompra"
 
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject AvionService avionService
+@inject CarritoCompraService carritoCompraService
+<h3 class="mb-4 fw-bold text-black">Carrito de Compra</h3>
 
+@if (carritoDetalles == null)
+{
+    <p class="text-muted">Cargando carrito...</p>
+}
+else if (!carritoDetalles.Any())
+{
+    <div class="alert alert-info py-3 fs-5">No hay aviones en el carrito.</div>
+    <a href="/" class="btn btn-primary btn-lg">Volver a la tienda</a>
+}
+else
+{
+    <table class="table table-hover align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>Avión</th>
+                <th>Modelo</th>
+                <th>Cantidad</th>
+                <th>Precio unitario</th>
+                <th>Total</th>
+                <th class="text-center">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in carritoDetalles)
+            {
+                var avion = GetAvion(item.IdAvion);
+                <tr>
+                    <td>
+                        <img src="@avion.ImagenUrl" alt="@avion.Modelo" class="img-thumbnail" style="width: 80px; height: 50px; object-fit: cover; border-radius: 8px;" />
+                    </td>
+                    <td class="align-middle fw-semibold">@avion.Modelo</td>
+                    <td class="align-middle">@item.Cantidad</td>
+                    <td class="align-middle">@item.Precio.ToString("C")</td>
+                    <td class="align-middle fw-semibold">@((item.Cantidad * item.Precio).ToString("C"))</td>
+                    <td class="text-center align-middle">
+                        <button class="btn btn-danger btn-sm px-3" @onclick="() => EliminarItem(item.IdAvion)" title="Eliminar">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
 
-<h3>CarritoDeCompra</h3>
+    <div class="d-flex justify-content-between align-items-center mt-4 p-3 bg-light rounded shadow-sm">
+        <h5 class="mb-0 fw-bold">Total: @carritoDetalles.Sum(i => i.Cantidad * i.Precio).ToString("C")</h5>
+        <button class="btn btn-success btn-lg px-4" @onclick="ComprarTodo">
+            <i class="bi bi-cart-check me-2"></i> Comprar
+        </button>
+    </div>
+}
+
 
 @code {
+    private AuthenticationState authState;
+    private List<CarritoDetalle> carritoDetalles;
+    private List<Aviones> avionesCache = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        avionesCache = await avionService.Listar(a => true);
+
+
+
+        var user = authState.User;
+
+        if (user.Identity != null && user.Identity.IsAuthenticated && user.IsInRole("Admin"))
+        {
+
+            NavigationManager.NavigateTo("/");
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var carritoJson = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "carritoCompra");
+            if (!string.IsNullOrEmpty(carritoJson))
+            {
+                try
+                {
+                    carritoDetalles = System.Text.Json.JsonSerializer.Deserialize<List<CarritoDetalle>>(carritoJson);
+                    if (carritoDetalles == null)
+                    {
+                        carritoDetalles = new List<CarritoDetalle>();
+                    }
+                    else
+                    {
+                      
+                        var ids = carritoDetalles.Select(x => x.IdAvion).ToList();
+                        var avionesExistentes = await avionService.Listar(a => ids.Contains(a.IdAvion));
+                        var idsValidos = avionesExistentes.Select(a => a.IdAvion).ToHashSet();
+
+                        carritoDetalles = carritoDetalles
+                            .Where(item => idsValidos.Contains(item.IdAvion))
+                            .ToList();
+                    }
+                }
+                catch
+                {
+                    carritoDetalles = new List<CarritoDetalle>();
+                }
+            }
+            else
+            {
+                carritoDetalles = new List<CarritoDetalle>();
+            }
+
+            StateHasChanged();
+        }
+    }
+
+
+
+    private string GetModelo(int idAvion)
+    {
+        var avion = avionesCache.FirstOrDefault(a => a.IdAvion == idAvion);
+        return avion != null ? avion.Modelo : $"Avión #{idAvion}";
+    }
+
+    private Aviones? GetAvion(int idAvion)
+    {
+        return avionesCache.FirstOrDefault(a => a.IdAvion == idAvion);
+    }
+
+
+    private async Task EliminarItem(int idAvion)
+    {
+        carritoDetalles.RemoveAll(i => i.IdAvion == idAvion);
+        await GuardarCarrito();
+        StateHasChanged();
+    }
+
+    private async Task GuardarCarrito()
+    {
+        var json = System.Text.Json.JsonSerializer.Serialize(carritoDetalles);
+        await JSRuntime.InvokeVoidAsync("localStorage.setItem", "carritoCompra", json);
+    }
+
+
+    private async Task ComprarTodo()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+
+        if (!authState.User.Identity.IsAuthenticated)
+        {
+            NavigationManager.NavigateTo("/Account/Login?returnUrl=/CarritoDeCompra");
+            return;
+        }
+
+        bool confirmado = await JSRuntime.InvokeAsync<bool>("confirm", "¿Está seguro que desea comprar todos los aviones del carrito?");
+
+        if (!confirmado)
+            return;
+
+
+        var userId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrEmpty(userId))
+        {
+
+            return;
+        }
+
+
+        var compra = new CarritoCompra
+        {
+            IdUsuario = userId,
+            FechaCreacion = DateTime.Now,
+            Detalles = carritoDetalles.Select(d => new ProyectoFinalAp1.Models.CarritoDetalle
+            {
+                IdAvion = d.IdAvion,
+                Cantidad = d.Cantidad,
+                Precio = d.Precio,
+
+
+            }).ToList()
+
+        };
+
+
+        await carritoCompraService.Guardar(compra);
+
+
+        await JSRuntime.InvokeVoidAsync("localStorage.removeItem", "carritoCompra");
+        StateHasChanged();
+
+
+        NavigationManager.NavigateTo("/");
+    }
+
 
 }

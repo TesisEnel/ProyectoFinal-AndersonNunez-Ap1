@@ -1,4 +1,6 @@
 ﻿@page "/MisComprasIndex"
+@attribute [Authorize(Roles = "Cliente")]
+
 
 @inject CarritoCompraService carritoCompraService
 @inject AuthenticationStateProvider AuthenticationStateProvider
@@ -37,7 +39,7 @@ else
                         @foreach (var item in venta.Detalles)
                         {
                             <tr>
-                                <td>@item.Avion?.Fabricante</td>
+                                <td>@item.Avion?.Nombre</td>
                                 <td>@item.Avion?.Modelo</td>
                                 <td>@item.Cantidad</td>
                                 <td>@item.Precio</td>
