@@ -1,12 +1,14 @@
 ﻿@page "/Aviones/AvionesCreate"
 
+@attribute [Authorize(Roles = "Admin")]
+
+@inject IToastService toast
 @inject NavigationManager navigationManager
 @inject CategoriaService categoriaService
 @inject AvionService avionesService
 
 
-@using ProyectoFinalAp1.Models
-@using ProyectoFinalAp1.Services
+
 
 
 <EditForm Model="avion" OnValidSubmit="Guardar">
@@ -46,10 +48,7 @@
                         <div class="text-danger mt-2">@ErrorMessage</div>
                     }
                 </div>
-                <div class="mb-3">
-                    <label class="form-label"><strong>Fabricante</strong></label>
-                    <InputText class="form-control" @bind-Value="avion.Fabricante" />
-                </div>
+         
 
                 <div class="mb-3">
                     <label class="form-label"><strong>Categoría</strong></label>
@@ -129,17 +128,23 @@
             navigationManager.NavigateTo("/Categoria/CategoriaIndex");
         }
     }
-
     private async Task Guardar()
     {
         var guardado = await avionesService.Guardar(avion);
 
         if (guardado)
         {
+            toast.ShowSuccess("Avión guardado correctamente");
             await Nuevo();
             Volver();
         }
+        else
+        {
+            toast.ShowError("Error al guardar el avión");
+        }
     }
+
+ 
 
     private async Task Nuevo()
     {

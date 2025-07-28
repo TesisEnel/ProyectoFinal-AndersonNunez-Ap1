@@ -1,0 +1,70 @@
+﻿@page "/MisComprasIndex"
+@attribute [Authorize(Roles = "Cliente")]
+
+
+@inject CarritoCompraService carritoCompraService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<h3 class="text-center mb-4">Mis Compras</h3>
+
+@if (compras is null)
+{
+    <p><em>Cargando compras...</em></p>
+}
+else if (compras.Count == 0)
+{
+    <p><strong>No tienes compras registradas.</strong></p>
+}
+else
+{
+    @foreach (var venta in compras)
+    {
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between">
+                <strong>Compra #@venta.Id</strong>
+                <span>@venta.FechaCreacion.ToString("dd/MM/yyyy hh:mm tt")</span>
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Avión</th>
+                            <th>Modelo</th>
+                            <th>Cantidad</th>
+                            <th>Precio</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in venta.Detalles)
+                        {
+                            <tr>
+                                <td>@item.Avion?.Nombre</td>
+                                <td>@item.Avion?.Modelo</td>
+                                <td>@item.Cantidad</td>
+                                <td>@item.Precio</td>
+                                <td>@(item.Precio* item.Cantidad)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                <p class="text-end"><strong>Total:</strong> @venta.Detalles.Sum(d => d.Precio * d.Cantidad).ToString("C")</p>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    private List<CarritoCompra> compras;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var userId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+        if (!string.IsNullOrEmpty(userId))
+        {
+            compras = await carritoCompraService.ListarConDetalle(userId);
+        }
+    }
+}

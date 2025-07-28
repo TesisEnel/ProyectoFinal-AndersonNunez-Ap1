@@ -6,6 +6,7 @@ using ProyectoFinalAp1.Components;
 using ProyectoFinalAp1.Components.Account;
 using ProyectoFinalAp1.Data;
 using ProyectoFinalAp1.Services;
+using Blazored.Toast;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,7 +14,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-
+builder.Services.AddBlazoredToast();
 
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();

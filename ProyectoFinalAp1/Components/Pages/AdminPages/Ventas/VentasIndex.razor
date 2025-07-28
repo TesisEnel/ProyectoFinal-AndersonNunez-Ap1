@@ -1,0 +1,65 @@
+﻿@page "/Ventas/VentasIndex"
+@attribute [Authorize(Roles = "Admin")]
+
+
+@inject CarritoCompraService carritoCompraService
+
+<h3 class="text-center mb-4">Listado de Ventas</h3>
+
+@if (ventas is null)
+{
+    <p><em>Cargando ventas...</em></p>
+}
+else if (ventas.Count == 0)
+{
+    <p><strong>No hay ventas registradas.</strong></p>
+}
+else
+{
+    @foreach (var venta in ventas)
+    {
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between">
+                <strong>Venta #@venta.Id</strong>
+                <span>@venta.FechaCreacion.ToString("dd/MM/yyyy hh:mm tt")</span>
+            </div>
+            <div class="card-body">
+                <p><strong>Usuario:</strong> @venta.IdUsuario</p>
+
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Avión</th>
+                            <th>Modelo</th>
+                            <th>Cantidad</th>
+                            <th>Precio</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in venta.Detalles)
+                        {
+                            <tr>
+                                <td>@item.Avion?.Nombre</td>
+                                <td>@item.Avion?.Modelo</td>
+                                <td>@item.Cantidad</td>
+                                <td>@item.Precio</td>
+                                <td>@(item.Precio* item.Cantidad)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                <p class="text-end"><strong>Total de la Venta:</strong> @venta.Detalles.Sum(d => d.Precio * d.Cantidad).ToString("C")</p>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    private List<CarritoCompra> ventas;
+
+    protected override async Task OnInitializedAsync()
+    {
+        ventas = await carritoCompraService.ListarConDetalle();
+    }
+}

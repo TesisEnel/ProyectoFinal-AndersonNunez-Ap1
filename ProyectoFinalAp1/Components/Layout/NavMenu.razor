@@ -1,46 +1,81 @@
 ﻿@implements IDisposable
-
 @inject NavigationManager NavigationManager
 
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
-        <a class="navbar-brand" href="">ProyectoFinalAp1</a>
+        <a class="navbar-brand" href="">TheSkyMarket</a>
     </div>
 </div>
 
 <input type="checkbox" title="Navigation menu" class="navbar-toggler" />
 
 <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
-    <nav class="nav flex-column">
+    <nav class="flex-column">
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+                <span class="bi bi-house-door-fill" aria-hidden="true"></span> Home
             </NavLink>
         </div>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
-            </NavLink>
-        </div>
+        <!-- Administrador -->
+        <AuthorizeView Roles="Admin">
+            <Authorized>
+                <div class="section-title px-3 mt-3 text-white">Aviones</div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="Aviones/AvionesCreate">
+                        <span class="bi bi-plus-circle-fill" aria-hidden="true"></span> Registrar aviones
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="Aviones/AvionesIndex">
+                        <span class="bi bi-search" aria-hidden="true"></span> Consultar aviones
+                    </NavLink>
+                </div>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="weather">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
-            </NavLink>
-        </div>
+                <div class="section-title px-3 mt-3 text-white">Categorías</div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="Categoria/CategoriaCreate">
+                        <span class="bi bi-plus-circle-fill" aria-hidden="true"></span> Registrar categoría
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="Categoria/CategoriaIndex">
+                        <span class="bi bi-search" aria-hidden="true"></span> Consultar categoría
+                    </NavLink>
+                </div>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="auth">
-                <span class="bi bi-lock-nav-menu" aria-hidden="true"></span> Auth Required
-            </NavLink>
-        </div>
+                <div class="section-title px-3 mt-3 text-white">Ventas</div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="Ventas/VentasIndex">
+                        <span class="bi bi-receipt-cutoff" aria-hidden="true"></span> Consultar ventas
+                    </NavLink>
+                </div>
+            </Authorized>
+        </AuthorizeView>
 
+        <!-- Cliente -->
+        <AuthorizeView Roles="Cliente">
+            <Authorized>
+                <div class="section-title px-3 mt-3 text-white">Mi carrito</div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="CarritoDeCompra">
+                        <span class="bi bi-cart-fill" aria-hidden="true"></span> Carrito
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="MisComprasIndex">
+                        <span class="bi bi-bag-check-fill" aria-hidden="true"></span> Compras
+                    </NavLink>
+                </div>
+            </Authorized>
+        </AuthorizeView>
+
+        <!-- Autenticación -->
         <AuthorizeView>
             <Authorized>
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="Account/Manage">
-                        <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> @context.User.Identity?.Name
+                        <span class="bi bi-person-circle" aria-hidden="true"></span> @context.User.Identity?.Name
                     </NavLink>
                 </div>
                 <div class="nav-item px-3">
@@ -48,7 +83,7 @@
                         <AntiforgeryToken />
                         <input type="hidden" name="ReturnUrl" value="@currentUrl" />
                         <button type="submit" class="nav-link">
-                            <span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> Logout
+                            <span class="bi bi-box-arrow-right" aria-hidden="true"></span> Logout
                         </button>
                     </form>
                 </div>
@@ -56,18 +91,19 @@
             <NotAuthorized>
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="Account/Register">
-                        <span class="bi bi-person-nav-menu" aria-hidden="true"></span> Register
+                        <span class="bi bi-person-plus-fill" aria-hidden="true"></span> Register
                     </NavLink>
                 </div>
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="Account/Login">
-                        <span class="bi bi-person-badge-nav-menu" aria-hidden="true"></span> Login
+                        <span class="bi bi-box-arrow-in-right" aria-hidden="true"></span> Login
                     </NavLink>
                 </div>
             </NotAuthorized>
         </AuthorizeView>
     </nav>
 </div>
+
 
 @code {
     private string? currentUrl;

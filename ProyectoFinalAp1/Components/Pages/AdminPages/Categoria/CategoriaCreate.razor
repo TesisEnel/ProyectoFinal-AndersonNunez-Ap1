@@ -1,11 +1,10 @@
 ﻿@page "/Categoria/CategoriaCreate"
+@attribute [Authorize(Roles = "Admin")]
 
+
+@inject IToastService toast
 @inject CategoriaService categoriaService
 @inject NavigationManager navigationManager
-@using Microsoft.AspNetCore.Mvc
-@using ProyectoFinalAp1.Models
-@using ProyectoFinalAp1.Services
-@using System.Diagnostics
 
 
 
@@ -67,8 +66,7 @@
 
     private async Task Guardar()
     {
-        Debug.WriteLine($"Nombre: {categoria.Nombre}");
-        Debug.WriteLine($"Descripción: {categoria.Descripcion}");
+    
         if (await categoriaService.Existe(categoria.IdCategoria))
         {
 
@@ -78,8 +76,14 @@
         var guardado = await categoriaService.Guardar(categoria);
         if (guardado)
         {
+            toast.ShowSuccess("Se guardo.");
             await Nuevo();
             Volver();
+        }
+        else
+        {
+            toast.ShowSuccess("No se guardo.");
+
         }
 
     }

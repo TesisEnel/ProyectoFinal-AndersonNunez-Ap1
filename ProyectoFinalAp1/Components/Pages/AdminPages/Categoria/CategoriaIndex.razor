@@ -1,11 +1,11 @@
 ﻿@page "/Categoria/CategoriaIndex"
+@attribute [Authorize(Roles = "Admin")]
 
 
 @inject CategoriaService categoriaService
 @inject NavigationManager navigationManager
 
-@using ProyectoFinalAp1.Models
-@using ProyectoFinalAp1.Services
+
 
 
 <div class="container">
