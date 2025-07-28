@@ -17,40 +17,47 @@
 
 <PageTitle>Register</PageTitle>
 
-<h1>Register</h1>
+<div class="row justify-content-center align-items-center vh-100 bg-light">
+    <div class="col-md-6 col-lg-5 col-xl-4">
+        <div class="card shadow-lg rounded-4 border-0 p-4 p-md-5 bg-white animate__animated animate__fadeInDown">
+            <div class="text-center mb-4">
+                <img src="https://static.vecteezy.com/system/resources/previews/009/789/289/non_2x/airplane-with-paper-plane-launch-logo-free-vector.jpg"
+                     alt="Logo"
+                     style="max-width: 120px;"
+                     class="mb-3 mx-auto d-block animate__animated animate__fadeInDown" />
+                <h1 class="h3 fw-bold mb-1 animate__animated animate__fadeInUp">Create Account</h1>
+                <p class="text-muted mb-4 animate__animated animate__fadeInUp animate__delay-1s">Register to start your journey</p>
+            </div>
 
-<div class="row">
-    <div class="col-lg-6">
-        <StatusMessage Message="@Message" />
-        <EditForm Model="Input" asp-route-returnUrl="@ReturnUrl" method="post" OnValidSubmit="RegisterUser" FormName="register">
-            <DataAnnotationsValidator />
-            <h2>Create a new account.</h2>
-            <hr />
-            <ValidationSummary class="text-danger" role="alert" />
-            <div class="form-floating mb-3">
-                <InputText @bind-Value="Input.Email" id="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
-                <label for="Input.Email">Email</label>
-                <ValidationMessage For="() => Input.Email" class="text-danger" />
-            </div>
-            <div class="form-floating mb-3">
-                <InputText type="password" @bind-Value="Input.Password" id="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
-                <label for="Input.Password">Password</label>
-                <ValidationMessage For="() => Input.Password" class="text-danger" />
-            </div>
-            <div class="form-floating mb-3">
-                <InputText type="password" @bind-Value="Input.ConfirmPassword" id="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
-                <label for="Input.ConfirmPassword">Confirm Password</label>
-                <ValidationMessage For="() => Input.ConfirmPassword" class="text-danger" />
-            </div>
-            <button type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
-        </EditForm>
-    </div>
-    <div class="col-lg-4 col-lg-offset-2">
-        <section>
-            <h3>Use another service to register.</h3>
-            <hr />
-            <ExternalLoginPicker />
-        </section>
+            <StatusMessage Message="@Message" />
+
+            <EditForm Model="Input" OnValidSubmit="RegisterUser" FormName="register" class="animate__animated animate__fadeInUp animate__delay-2s">
+                <DataAnnotationsValidator />
+                <ValidationSummary class="text-danger mb-3" role="alert" />
+
+                <div class="form-floating mb-3">
+                    <InputText @bind-Value="Input.Email" class="form-control" id="email" placeholder="name@example.com" autocomplete="username" />
+                    <label for="email">Email address</label>
+                    <ValidationMessage For="() => Input.Email" class="text-danger" />
+                </div>
+
+                <div class="form-floating mb-3">
+                    <InputText type="password" @bind-Value="Input.Password" class="form-control" id="password" placeholder="Password" autocomplete="new-password" />
+                    <label for="password">Password</label>
+                    <ValidationMessage For="() => Input.Password" class="text-danger" />
+                </div>
+
+                <div class="form-floating mb-4">
+                    <InputText type="password" @bind-Value="Input.ConfirmPassword" class="form-control" id="confirm-password" placeholder="Confirm Password" autocomplete="new-password" />
+                    <label for="confirm-password">Confirm Password</label>
+                    <ValidationMessage For="() => Input.ConfirmPassword" class="text-danger" />
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 btn-lg fw-semibold shadow-sm" style="letter-spacing: 0.05em;">
+                    Register
+                </button>
+            </EditForm>
+        </div>
     </div>
 </div>
 
@@ -81,6 +88,12 @@
         }
 
         Logger.LogInformation("User created a new account with password.");
+
+
+
+         await UserManager.AddToRoleAsync(user, "Cliente");
+
+
 
         var userId = await UserManager.GetUserIdAsync(user);
         var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);
