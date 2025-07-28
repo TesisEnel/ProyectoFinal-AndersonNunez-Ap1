@@ -1,4 +1,5 @@
 ﻿@page "/Aviones/AvionesIndex"
+@attribute [Authorize(Roles = "Admin")]
 
 
 
@@ -57,7 +58,7 @@
                             <tr>
                                 <td>@avion.IdAvion</td>
                                 <td>@avion.Modelo</td>
-                                <td>@avion.Fabricante</td>
+                                <td>@avion.Nombre</td>
                                 <td>@avion.FechaFabricacion.ToShortDateString()</td>
                                 <td>@avion.CantidadDisponible</td>
                                 <td class="text-center">
@@ -109,9 +110,9 @@
         {
             ListaAviones = await avionService.Listar(a => a.Modelo.ToLower().Contains(ValorFiltro));
         }
-        else if (Filtro == "Fabricante")
+        else if (Filtro == "Nombre")
         {
-            ListaAviones = await avionService.Listar(a => a.Fabricante.ToLower().Contains(ValorFiltro));
+            ListaAviones = await avionService.Listar(a => a.Nombre.ToLower().Contains(ValorFiltro));
         }
         else if (Filtro == "Categoria")
         {

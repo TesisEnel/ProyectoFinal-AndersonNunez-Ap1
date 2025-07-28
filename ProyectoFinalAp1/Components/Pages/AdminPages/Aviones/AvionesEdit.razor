@@ -1,10 +1,11 @@
 ﻿@page "/Aviones/AvionesEdit/{id:int}"
 
+@attribute [Authorize(Roles = "Admin")]
 
 @inject NavigationManager navigationManager
 @inject CategoriaService categoriaService
 @inject AvionService avionesService
-
+@inject IToastService toast
 
 
 
@@ -47,11 +48,7 @@
                             <div class="text-danger mt-2">@ErrorMessage</div>
                         }
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label"><strong>Fabricante</strong></label>
-                        <InputText class="form-control" @bind-Value="avion.Fabricante" />
-                    </div>
-
+                
                     <div class="mb-3">
                         <label class="form-label"><strong>Categoría</strong></label>
                         <InputSelect class="form-control" @bind-Value="avion.IdCategoria">
@@ -143,7 +140,13 @@ else
 
         if (actualizado)
         {
+            toast.ShowSuccess("Se actualizo.");
+
             Volver();
+        }
+        else
+        {
+            toast.ShowError("No se actualizo.");
         }
     }
 
