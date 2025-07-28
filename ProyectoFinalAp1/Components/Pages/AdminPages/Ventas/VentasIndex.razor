@@ -1,4 +1,5 @@
 ﻿@page "/Ventas/VentasIndex"
+@attribute [Authorize(Roles = "Admin")]
 
 
 @inject CarritoCompraService carritoCompraService
@@ -39,7 +40,7 @@ else
                         @foreach (var item in venta.Detalles)
                         {
                             <tr>
-                                <td>@item.Avion?.Fabricante</td>
+                                <td>@item.Avion?.Nombre</td>
                                 <td>@item.Avion?.Modelo</td>
                                 <td>@item.Cantidad</td>
                                 <td>@item.Precio</td>
