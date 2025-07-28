@@ -1,4 +1,5 @@
 ﻿@page "/Categoria/CategoriaIndex"
+@attribute [Authorize(Roles = "Admin")]
 
 
 @inject CategoriaService categoriaService

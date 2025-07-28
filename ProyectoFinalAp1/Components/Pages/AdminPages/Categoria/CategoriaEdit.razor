@@ -1,6 +1,7 @@
 ﻿@page "/Categoria/CategoriaEdit/{Id:int}"
+@attribute [Authorize(Roles = "Admin")]
 
-
+@inject IToastService toast
 @inject CategoriaService categoriaService
 @inject NavigationManager navigationManager
 
@@ -69,7 +70,7 @@ else
         categoria = await categoriaService.Buscar(Id);
         if (categoria == null)
         {
-          
+
             categoria = new Categoria();
         }
     }
@@ -83,6 +84,7 @@ else
         else
         {
             categoria = new Categoria();
+
         }
     }
 
@@ -91,7 +93,13 @@ else
         if (categoria != null)
         {
             await categoriaService.Guardar(categoria);
+            toast.ShowError("Se guardo.");
+
             Volver();
+        }
+        else
+        {
+            toast.ShowError("No se guardo.");
         }
     }
 
