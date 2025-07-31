@@ -6,7 +6,7 @@
 @inject CategoriaService categoriaService
 @inject AvionService avionesService
 @inject IToastService toast
-@inject IJSRuntime JSRuntime
+
 
 
 @if (avion != null)
@@ -101,10 +101,6 @@
                         <button type="button" class="btn btn-secondary" @onclick="Volver">
                             <i class="bi bi-arrow-left"></i> Volver
                         </button>
-                        <button type="button" class="btn btn-danger" @onclick="() => EliminarAvion(avion.IdAvion)">
-                            <i class="bi bi-trash"></i> Eliminar
-                        </button>
-
                         <button type="submit" class="btn btn-warning">
                             <i class="bi bi-check-circle"></i> Actualizar
                         </button>
@@ -236,15 +232,4 @@ else
         }
     }
 
-    private async Task EliminarAvion(int id)
-    {
-        bool confirmado = await JSRuntime.InvokeAsync<bool>("confirm", $"¿Eliminar avión ID {id}?");
-        if (!confirmado) return;
-
-        var exito = await avionesService.Eliminar(id);
-        if (exito)
-        {
-            Volver();
-        }
-    }
 }
