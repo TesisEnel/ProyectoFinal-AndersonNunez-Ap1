@@ -11,7 +11,7 @@ Funcionalidades del Proyecto
 5-Perfil de usuario: Gestión de datos personales, historial de compras.
 
 Link de proyecto:
-http://proyectfinal.somee.com
+https://skymarketth.somee.com/
 
 ROLES 
 Admin: 
